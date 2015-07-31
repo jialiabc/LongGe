@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">LongGe</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="user_1">User1</string>
+    <string name="user_2">User2</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title1">User1</string>
+    <string name="title2">User2</string>
+    <string name="send">发送</string>
+
+</resources>
