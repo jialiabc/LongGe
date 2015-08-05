@@ -3,6 +3,8 @@ package com.zhangxu.longge;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -11,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.util.LruCache;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
@@ -22,12 +25,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener{
+public class MainActivity extends FragmentActivity implements View.OnClickListener {
 
-    private static final int TAKE_PHOTO = 1 ;
+    private static final int TAKE_PHOTO = 1;
+    private static final int RESULT_IMAGE = 2;
     private RelativeLayout user1;
     private RelativeLayout user2;
 
@@ -53,7 +58,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private ArrayList<Fragment> fragArr;
 
 
-
     private DataBaseHelper helper;
     private SQLiteDatabase db;
 
@@ -63,7 +67,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private RelativeLayout mdrawerlayout;
 
+    private int view_step;
 
+    private MediaRecorder mRecorder;
+
+    private LruCache<String, Bitmap> mMemoryCache;
 
 
     @Override
@@ -75,7 +83,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
 
     }
-
 
 
     private void initView() {
@@ -90,7 +97,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mPicture.setOnClickListener(this);
         mVedio.setOnClickListener(this);
         mTake_pic.setOnClickListener(this);
-        mTape.setOnClickListener(this);
+        mTape.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                recodeVoice();
+                return false;
+            }
+        });
 
 
         user1_tv = (TextView) findViewById(R.id.user1_tv);
@@ -143,44 +156,86 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         db = helper.getWritableDatabase();
 
+        mRecorder = new MediaRecorder();
+
+
 
 
     }
-//各种按钮的点击事件
+
+    //各种按钮的点击事件
     @Override
     public void onClick(View v) {
 
-      switch (v.getId()) {
+        switch (v.getId()) {
+            //发送按钮点击事件
+            case R.id.send:
 
-          case R.id.send:
+                String text = edit_input.getText().toString();
 
-          String text = edit_input.getText().toString();
+                db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, text, null});
 
-          db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, text,null});
+                refresh();
+                edit_input.setText("");
 
-          Log.e("db", "" + index);
+                break;
+            //加号按钮点击事件
+            case R.id.add_button:
 
-          refresh();
+                if (view_step == View.GONE) {
+                    mdrawerlayout.setVisibility(view_step);
+                    view_step = View.VISIBLE;
+                } else {
+                    mdrawerlayout.setVisibility(view_step);
+                    view_step = View.GONE;
+                }
+                break;
+            //输入框点击事件
+            case R.id.edit_input:
+                mdrawerlayout.setVisibility(View.GONE);
+                break;
+            //拍照点击事件
+            case R.id.take_pic:
+                takePhoto();
+                break;
+            //调系统相册
+            case R.id.picture:
+                selectedPicture();
+                break;
 
-              edit_input.setText("");
-
-              break;
-          case R.id.add_button:
-
-            mdrawerlayout.setVisibility(View.VISIBLE);
-
-              break;
-
-          case R.id.edit_input:
-            mdrawerlayout.setVisibility(View.GONE);
-              break;
-
-          case R.id.take_pic:
-              takePhoto();
-      }
+        }
 
     }
-//刷新界面
+
+    //调用系统录音录制声音
+    private void recodeVoice() {
+
+        long time_ = System.currentTimeMillis();
+        File file = new File("/sdcard/longge/" + "recode" + time_ + "3gp");
+
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFile(file.toString());
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+        try{
+            mRecorder.prepare();
+        }catch (IOException e){
+
+        }
+        mRecorder.start();
+    }
+
+    //调用系统图库选择照片
+    private void selectedPicture() {
+
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        startActivityForResult(intent, RESULT_IMAGE);
+
+    }
+
+    //刷新界面
     private void refresh() {
         ((User1Fragment) user1Fragment).refresh();
         ((User2Fragment) user2Fragment).refresh();
@@ -190,7 +245,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private void takePhoto() {
 
         Uri imageUri = null;
-
 
         String sdStatus = Environment.getExternalStorageState();
         if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) { // 检测sd是否可用
@@ -203,33 +257,44 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 
+        //存储图片路径
         long time_ = System.currentTimeMillis();
-        File out = new File("/sdcard/longge/" + "yuantu" + time_ +".jpg");
+        File out = new File("/sdcard/longge/" + "yuantu" + time_ + ".jpg");
         imageUri = Uri.fromFile(out);
 
         // 获取拍照后未压缩的原图像，并保存在uri路径中
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-
+        //得到图片的存储路径
         String imageName = imageUri.getPath();
 
-        db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, null,imageName});
-
-
+        //将图片路径存储到数据库中
+        db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, null, imageName});
 
         startActivityForResult(intent, TAKE_PHOTO);
 
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if(resultCode == Activity.RESULT_OK){
-            refresh();
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case TAKE_PHOTO:
+                    refresh();
+                    break;
+                case RESULT_IMAGE:
+                    Uri uri = data.getData();
+                    String imageName = uri.getPath();
+                    db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, null, imageName});
+                    refresh();
+                    break;
+            }
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-//用户1切换的点击事件
-    private View.OnClickListener MyOnClickListener0 = new View.OnClickListener(){
+    //用户1切换的点击事件
+    private View.OnClickListener MyOnClickListener0 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             index = 0;
@@ -237,8 +302,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     };
 
-//用户2切换的点击事件
-    private View.OnClickListener MyOnClickListener1 = new View.OnClickListener(){
+    //用户2切换的点击事件
+    private View.OnClickListener MyOnClickListener1 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             index = 1;
@@ -247,13 +312,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     };
 
 
-
-
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
-       ArrayList<Fragment> list;
+        ArrayList<Fragment> list;
 
-        public MyFragmentPagerAdapter(FragmentManager fm,ArrayList<Fragment> list) {
+        public MyFragmentPagerAdapter(FragmentManager fm, ArrayList<Fragment> list) {
             super(fm);
 
             this.list = list;
@@ -271,10 +334,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
 
-
-
-
-//滑动切换的监听器
+    //滑动切换的监听器
     private class MyOnPaperChangeListener implements ViewPager.OnPageChangeListener {
         @Override
         public void onPageScrolled(int i, float v, int i2) {
@@ -284,20 +344,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         @Override
         public void onPageSelected(int i) {
 
-            Log.e("0000","ooooo");
+            Log.e("0000", "ooooo");
 
-            if(i==0){
+            if (i == 0) {
                 index = i;
                 user1_tv.setTextColor(0xff41b5e8);
-                Log.e("1111111","1111111");
-            }else {
+                Log.e("1111111", "1111111");
+            } else {
                 user1_tv.setTextColor(0xff666666);
             }
 
-            if(i==1){
+            if (i == 1) {
                 index = i;
                 user2_tv.setTextColor(0xff41b5e8);
-            }else{
+            } else {
                 user2_tv.setTextColor(0xff666666);
             }
 

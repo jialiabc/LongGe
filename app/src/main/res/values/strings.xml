@@ -10,5 +10,6 @@
     <string name="title1">User1</string>
     <string name="title2">User2</string>
     <string name="send">发送</string>
+    <string name="title_activity_image">Image</string>
 
 </resources>

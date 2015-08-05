@@ -2,6 +2,7 @@ package com.zhangxu.longge;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -67,8 +69,29 @@ public class User1Fragment extends Fragment {
 
         initView();
         refresh();
+
+        setOnItemClickListener();
         
         return user1View;
+    }
+    //对话条的点击数件--图片，录音和视频的点击事件
+    private void setOnItemClickListener() {
+        //图片的点击事件
+        mlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Map map = list.get(position);
+                if(map.get("Image")!=null){
+                    String image = map.get("Image").toString();
+
+                    Intent intent = new Intent(mContext,Image.class);
+                    intent.putExtra("image_show",image);
+                    startActivity(intent);
+
+                }
+            }
+        });
+
     }
 
     //刷新数据库
@@ -80,7 +103,6 @@ public class User1Fragment extends Fragment {
     }
 
     private void initData() {
-
 
         db = helper.getReadableDatabase();
         c = db.query("dialog", null, null, null, null, null, null);
@@ -110,7 +132,6 @@ public class User1Fragment extends Fragment {
 
         adapter = new DialogAdapter();
         mlistView.setAdapter(adapter);
-
 
     }
 
@@ -173,10 +194,7 @@ public class User1Fragment extends Fragment {
                     if (file.exists()) {
                         Log.e("aaaaaaaa", image);
                     }
-//缩小到原图的一半
-//                    BitmapFactory.Options mOption = new BitmapFactory.Options();
-//                    mOption.inSampleSize = 2;
-//                    me_photo.setImageBitmap(BitmapFactory.decodeFile(image,mOption));
+
 
                     Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image),100,200);
                     me_photo.setImageBitmap(bm);
@@ -194,11 +212,11 @@ public class User1Fragment extends Fragment {
 
                 other_iv.setImageResource(R.drawable.xiaohong);
                 //添加文字对话
-
+                //判断数据库Text列是否为空
                 if (map.get("Text") != null) {
                     other_tv.setText(map.get("Text").toString());
                 }
-
+                //判断数据库Image列是否为空
                 if (map.get("Image") != null) {
                     String image = map.get("Image").toString();
                     File file = new File(image);
@@ -208,10 +226,6 @@ public class User1Fragment extends Fragment {
 
                     Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image),100,200);
                     other_photo.setImageBitmap(bm);
-//                    BitmapFactory.Options mOption
-//                            = new BitmapFactory.Options();
-//                    mOption.inSampleSize = 2;
-//                    BitmapFactory.decodeFile(image,mOption)
 
 
                 }
