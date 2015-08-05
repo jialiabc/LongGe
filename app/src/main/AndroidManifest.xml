@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.zhangxu.longge" >
+    package="com.zhangxu.longge">
 
     <!-- 授予程序可以向SD卡中保存文件的权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -13,15 +13,18 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="nadroid.hardware.camera.autofocus" />
 
+    <!--授予程序使用系统录音的权限-->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="stateAlwaysHidden" >
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,8 +33,7 @@
         </activity>
         <activity
             android:name=".Image"
-            android:label="@string/title_activity_image" >
-        </activity>
+            android:label="@string/title_activity_image"></activity>
     </application>
 
 </manifest>

@@ -3,7 +3,6 @@ package com.zhangxu.longge;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,9 +12,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.util.LruCache;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -71,8 +71,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private MediaRecorder mRecorder;
 
-    private LruCache<String, Bitmap> mMemoryCache;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +84,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
 
     private void initView() {
+
+
         user1 = (RelativeLayout) findViewById(R.id.user_1);
         user2 = (RelativeLayout) findViewById(R.id.user_2);
 
@@ -97,13 +97,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mPicture.setOnClickListener(this);
         mVedio.setOnClickListener(this);
         mTake_pic.setOnClickListener(this);
-        mTape.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                recodeVoice();
-                return false;
-            }
-        });
+        mTape.setOnTouchListener(new MyOnTouchListener());
 
 
         user1_tv = (TextView) findViewById(R.id.user1_tv);
@@ -156,14 +150,34 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         db = helper.getWritableDatabase();
 
+
         mRecorder = new MediaRecorder();
-
-
 
 
     }
 
-    //各种按钮的点击事件
+    //录音事件的内部类
+    class MyOnTouchListener implements View.OnTouchListener {
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+
+                recodeVoice();
+
+            }
+            if (event.getAction() == KeyEvent.ACTION_UP) {
+
+                stopRecode();
+
+            }
+            return false;
+        }
+    }
+
+
+    //各种按钮的短点击事件
     @Override
     public void onClick(View v) {
 
@@ -211,19 +225,30 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private void recodeVoice() {
 
         long time_ = System.currentTimeMillis();
-        File file = new File("/sdcard/longge/" + "recode" + time_ + "3gp");
+        File file = new File("/sdcard/longge/" + "recode" + time_ + ".3gp");
+
+        Log.e("recode", file.toString());
 
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mRecorder.setOutputFile(file.toString());
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-        try{
+        try {
             mRecorder.prepare();
-        }catch (IOException e){
+        } catch (IOException e) {
 
         }
         mRecorder.start();
+
+        db.execSQL("");
+    }
+
+    //停止录制声音
+    private void stopRecode() {
+        mRecorder.stop();
+        mRecorder.release();
+        mRecorder = null;
     }
 
     //调用系统图库选择照片
