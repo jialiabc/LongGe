@@ -2,10 +2,12 @@ package com.zhangxu.longge;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,12 +15,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +30,6 @@ import java.util.Map;
 
 
 public class User2Fragment extends Fragment {
-
 
 
     private View user2View;
@@ -38,19 +41,18 @@ public class User2Fragment extends Fragment {
 
     private Context mContext;
 
-    private List<Map<String,Object>> list;
-
-
+    private List<Map<String, Object>> list;
 
 
     private DialogAdapter adapter;
 
     private int index;
 
-    private  Cursor c;
+    private Cursor c;
 
+    private MediaPlayer mPlayer;
 
-
+    private int time;
 
 
     public void onAttach(Activity activity) {
@@ -69,24 +71,81 @@ public class User2Fragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        user2View = inflater.inflate(R.layout.fragment_user2,null);
+        user2View = inflater.inflate(R.layout.fragment_user2, null);
 
 
         initView();
 
         refresh();
 
+        setOnItemClickListener();
+
         return user2View;
 
 
+    }
 
+    private void setOnItemClickListener() {
+
+        {
+
+            mlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    Map map = list.get(position);
+
+                    //点击图片查看大图的点击事件
+                    if (map.get("Image") != null) {
+                        String image = map.get("Image").toString();
+
+                        Intent intent = new Intent(mContext, Image.class);
+                        intent.putExtra("image_show", image);
+                        startActivity(intent);
+
+                    }
+                    //点击播放录音的点击事件
+                    else if (map.get("Voice") != null) {
+                        String voice = map.get("Voice").toString();
+
+                        File file = new File(voice);
+                        if (file.exists()) {
+                            Log.e("voice path", voice);
+                        }
+                        //点击图片时，判断是否在播放录音，如果是，则停止播放，如果否，则开始播放
+                        if (time == 0) {
+                            try {
+                                mPlayer = new MediaPlayer();
+                                mPlayer.setDataSource(voice);
+                                mPlayer.prepare();
+                                mPlayer.start();
+                                int i = mPlayer.getDuration();
+                                Log.e("Start", i + "");
+                            } catch (IOException e) {
+                                Log.e("rush", "崩了。");
+                            }
+
+                            time = 1;
+                        }
+                        if (time == 1) {
+                            mPlayer.stop();
+                            mPlayer.release();
+                            mPlayer = null;
+
+                            time = 0;
+                        }
+                    }
+                }
+            });
+
+        }
     }
 
     public void refresh() {
         list.clear();
         initData();
         adapter.notifyDataSetChanged();
-        mlistView.setSelection(list.size()-1);
+        mlistView.setSelection(list.size() - 1);
     }
 
     private void initData() {
@@ -94,17 +153,16 @@ public class User2Fragment extends Fragment {
 
         db = helper.getReadableDatabase();
 
-        c = db.query("dialog",null,null,null,null,null,null);
+        c = db.query("dialog", null, null, null, null, null, null);
 
 
+        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
 
-
-        for(c.moveToFirst();!c.isAfterLast();c.moveToNext()) {
-
-            Map<String,Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<String, Object>();
             map.put("Text", c.getString(c.getColumnIndex("text")));
             map.put("Id", c.getInt(c.getColumnIndex("id")));
-            map.put("Image",c.getString(c.getColumnIndex("image")));
+            map.put("Image", c.getString(c.getColumnIndex("image")));
+            map.put("Voice",c.getString(c.getColumnIndex("voice")));
             list.add(map);
 
             Log.e("LIST2", list.toString());
@@ -116,7 +174,7 @@ public class User2Fragment extends Fragment {
 
     private void initView() {
 
-        list = new ArrayList<Map<String,Object>>();
+        list = new ArrayList<Map<String, Object>>();
 
         mlistView = (ListView) user2View.findViewById(R.id.list_view2);
         helper = new DataBaseHelper(mContext);
@@ -125,26 +183,25 @@ public class User2Fragment extends Fragment {
         mlistView.setAdapter(adapter);
 
 
-
-
     }
 
 
-    public void onPause(){
+    public void onPause() {
         super.onPause();
 
 
     }
-    public void onStart(){
+
+    public void onStart() {
         super.onStart();
     }
 
-    public void onResume(){
+    public void onResume() {
         super.onResume();
     }
 
 
-    private class DialogAdapter extends BaseAdapter{
+    private class DialogAdapter extends BaseAdapter {
         @Override
         public int getCount() {
             return list.size();
@@ -168,25 +225,25 @@ public class User2Fragment extends Fragment {
             Map map = list.get(position);
             index = Integer.parseInt(map.get("Id").toString());
 
-            Log.e("index111111111",index+"");
+            Log.e("index111111111", index + "");
 
-            if(index==1){
-                View layout_me = View.inflate(mContext,R.layout.layout_item_me,null);
+            if (index == 1) {
+                View layout_me = View.inflate(mContext, R.layout.layout_item_me, null);
                 ImageView me_iv = (ImageView) layout_me.findViewById(R.id.head_me);
                 TextView me_tv = (TextView) layout_me.findViewById(R.id.text_me);
                 ImageView me_photo = (ImageView) layout_me.findViewById(R.id.image_me);
 
                 me_iv.setImageResource(R.drawable.xiaohong);
 
-                if(map.get("Text")!=null) {
+                if (map.get("Text") != null) {
                     me_tv.setText(map.get("Text").toString());
                 }
-                if(map.get("Image")!=null) {
+                if (map.get("Image") != null) {
                     String image = map.get("Image").toString();
-                    Log.e("image2",image);
+                    Log.e("image2", image);
                     File file = new File(image);
-                    if(file.exists()){
-                        Log.e("cccccc",image);
+                    if (file.exists()) {
+                        Log.e("cccccc", image);
                     }
 
                     Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image), 100, 200);
@@ -194,11 +251,16 @@ public class User2Fragment extends Fragment {
 
 
                 }
+                if (map.get("Voice") != null) {
+
+                    me_photo.setImageResource(R.drawable.voice);
+
+                }
 
                 view = layout_me;
             }
-            if(index==0){
-                View layout_other = View.inflate(mContext,R.layout.layout_item_other,null);
+            if (index == 0) {
+                View layout_other = View.inflate(mContext, R.layout.layout_item_other, null);
                 ImageView other_iv = (ImageView) layout_other.findViewById(R.id.head_other);
                 TextView other_tv = (TextView) layout_other.findViewById(R.id.text_other);
 
@@ -206,23 +268,31 @@ public class User2Fragment extends Fragment {
 
                 other_iv.setImageResource(R.drawable.xiaoming);
                 //添加文字对话
-                if(map.get("Text")!=null) {
+                if (map.get("Text") != null) {
                     other_tv.setText(map.get("Text").toString());
                 }
                 //添加图片对话
-                if(map.get("Image")!=null) {
+                if (map.get("Image") != null) {
                     String image = map.get("Image").toString();
                     File file = new File(image);
                     //判断文件是否存在
-                    if(file.exists()){
+                    if (file.exists()) {
                         Log.e("ddddddd" +
-                                "",image);
+                                "", image);
                     }
 
-                    Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image),100,200);
+                    Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image), 100, 200);
                     other_photo.setImageBitmap(bm);
 
                 }
+
+                //判断数据库Voice列是否为空
+                if (map.get("Voice") != null) {
+
+                    other_photo.setImageResource(R.drawable.voice);
+
+                }
+
                 view = layout_other;
             }
 

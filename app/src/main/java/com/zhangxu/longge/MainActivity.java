@@ -3,7 +3,6 @@ package com.zhangxu.longge;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,7 +24,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -69,7 +67,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private int view_step;
 
-    private MediaRecorder mRecorder;
+    private Recode mRecorder;
 
 
     @Override
@@ -150,6 +148,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         db = helper.getWritableDatabase();
 
+        mRecorder = new Recode();
+
 
 
     }
@@ -162,14 +162,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
-                recodeVoice();
+                mRecorder.recodeVoice();
+
 
             }
             if (event.getAction() == KeyEvent.ACTION_UP) {
 
                 Log.e("stop","停了？");
 
-                stopRecode();
+                mRecorder.stopRecode();
+                String fileName = mRecorder.fileName;
+
+                db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
+
 
                 refresh();
 
@@ -227,42 +232,42 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     }
 
-    //调用系统录音录制声音
-    private void recodeVoice() {
-
-        mRecorder = new MediaRecorder();
-
-        long time_ = System.currentTimeMillis();
-        File file = new File("/sdcard/longge/" + "recode" + time_ + ".3gp");
-
-        String fileName = file.getPath();
-        Log.e("recode", fileName);
-
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(fileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
-
-
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-
-        }
-        mRecorder.start();
-
-        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
-
-
-    }
-
-    //停止录制声音
-    private void stopRecode() {
-        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;
-    }
+//    //调用系统录音录制声音
+//    private void recodeVoice() {
+//
+//        mRecorder = new MediaRecorder();
+//
+//        long time_ = System.currentTimeMillis();
+//        File file = new File("/sdcard/longge/" + "recode" + time_ + ".3gp");
+//
+//        String fileName = file.getPath();
+//        Log.e("recode", fileName);
+//
+//        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+//        mRecorder.setOutputFile(fileName);
+//        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//
+//
+//
+//        try {
+//            mRecorder.prepare();
+//        } catch (IOException e) {
+//
+//        }
+//        mRecorder.start();
+//
+//        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
+//
+//
+//    }
+//
+//    //停止录制声音
+//    private void stopRecode() {
+//        mRecorder.stop();
+//        mRecorder.release();
+//        mRecorder = null;
+//    }
 
     //调用系统图库选择照片
     private void selectedPicture() {

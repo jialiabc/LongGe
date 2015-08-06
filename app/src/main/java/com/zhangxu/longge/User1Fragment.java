@@ -82,7 +82,7 @@ public class User1Fragment extends Fragment {
     }
     //对话条的点击数件--图片，录音和视频的点击事件
     private void setOnItemClickListener() {
-        //图片的点击事件
+
         mlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -106,6 +106,7 @@ public class User1Fragment extends Fragment {
                     if (file.exists()) {
                         Log.e("voice path", voice);
                     }
+                    //点击图片时，判断是否在播放录音，如果是，则停止播放，如果否，则开始播放
                     if(time == 0) {
                         try {
                             mPlayer = new MediaPlayer();
@@ -274,6 +275,12 @@ public class User1Fragment extends Fragment {
                     Bitmap bm = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(image),100,200);
                     other_photo.setImageBitmap(bm);
 
+
+                }
+                //判断数据库Voice列是否为空
+                if(map.get("Voice") != null){
+
+                    other_photo.setImageResource(R.drawable.voice);
 
                 }
                 view = layout_other;
