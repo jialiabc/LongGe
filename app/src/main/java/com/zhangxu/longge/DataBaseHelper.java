@@ -16,7 +16,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table dialog(id integer,text varchar(200),image varchar(400))");
+        db.execSQL("create table dialog(id integer,text varchar(200),image varchar(400),voice varchar(200))");
     }
 
     @Override

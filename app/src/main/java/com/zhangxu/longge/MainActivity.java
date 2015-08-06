@@ -151,8 +151,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         db = helper.getWritableDatabase();
 
 
-        mRecorder = new MediaRecorder();
-
 
     }
 
@@ -169,10 +167,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             if (event.getAction() == KeyEvent.ACTION_UP) {
 
+                Log.e("stop","停了？");
+
                 stopRecode();
 
+                refresh();
+
+
+
+
             }
-            return false;
+            return true;
         }
     }
 
@@ -187,7 +192,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                 String text = edit_input.getText().toString();
 
-                db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, text, null});
+                db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, text, null,null});
 
                 refresh();
                 edit_input.setText("");
@@ -204,6 +209,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     view_step = View.GONE;
                 }
                 break;
+
             //输入框点击事件
             case R.id.edit_input:
                 mdrawerlayout.setVisibility(View.GONE);
@@ -224,15 +230,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     //调用系统录音录制声音
     private void recodeVoice() {
 
+        mRecorder = new MediaRecorder();
+
         long time_ = System.currentTimeMillis();
         File file = new File("/sdcard/longge/" + "recode" + time_ + ".3gp");
 
-        Log.e("recode", file.toString());
+        String fileName = file.getPath();
+        Log.e("recode", fileName);
 
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(file.toString());
+        mRecorder.setOutputFile(fileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+
 
         try {
             mRecorder.prepare();
@@ -241,7 +252,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
         mRecorder.start();
 
-        db.execSQL("");
+        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
+
+
     }
 
     //停止录制声音
@@ -293,7 +306,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         String imageName = imageUri.getPath();
 
         //将图片路径存储到数据库中
-        db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, null, imageName});
+        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)", new Object[]{index, null, imageName,null});
 
         startActivityForResult(intent, TAKE_PHOTO);
 
@@ -309,7 +322,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 case RESULT_IMAGE:
                     Uri uri = data.getData();
                     String imageName = uri.getPath();
-                    db.execSQL("insert into dialog(id,text,image) values(?,?,?)", new Object[]{index, null, imageName});
+                    db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)", new Object[]{index, null, imageName,null});
                     refresh();
                     break;
             }

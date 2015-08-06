@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -21,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +49,10 @@ public class User1Fragment extends Fragment {
     private int index;
 
     private Cursor c;
+
+    private MediaPlayer mPlayer;
+
+    private int time;
 
 
     public void onAttach(Activity activity) {
@@ -80,7 +86,10 @@ public class User1Fragment extends Fragment {
         mlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 Map map = list.get(position);
+
+                //点击图片查看大图的点击事件
                 if(map.get("Image")!=null){
                     String image = map.get("Image").toString();
 
@@ -88,6 +97,36 @@ public class User1Fragment extends Fragment {
                     intent.putExtra("image_show",image);
                     startActivity(intent);
 
+                }
+                //点击播放录音的点击事件
+                else if(map.get("Voice") != null){
+                    String voice = map.get("Voice").toString();
+
+                    File file = new File(voice);
+                    if (file.exists()) {
+                        Log.e("voice path", voice);
+                    }
+                    if(time == 0) {
+                        try {
+                            mPlayer = new MediaPlayer();
+                            mPlayer.setDataSource(voice);
+                            mPlayer.prepare();
+                            mPlayer.start();
+                            int i = mPlayer.getDuration();
+                            Log.e("Start", i+"");
+                        } catch (IOException e) {
+                            Log.e("rush", "崩了。");
+                        }
+
+                        time = 1;
+                    }
+                    if(time == 1){
+                        mPlayer.stop();
+                        mPlayer.release();
+                        mPlayer = null;
+
+                        time = 0;
+                    }
                 }
             }
         });
@@ -114,6 +153,7 @@ public class User1Fragment extends Fragment {
             map.put("Text", c.getString(c.getColumnIndex("text")));
             map.put("Id", c.getInt(c.getColumnIndex("id")));
             map.put("Image", c.getString(c.getColumnIndex("image")));
+            map.put("Voice",c.getString(c.getColumnIndex("voice")));
             list.add(map);
 
             Log.e("LIST1", list.toString());
@@ -132,6 +172,8 @@ public class User1Fragment extends Fragment {
 
         adapter = new DialogAdapter();
         mlistView.setAdapter(adapter);
+
+
 
     }
 
@@ -192,7 +234,7 @@ public class User1Fragment extends Fragment {
 
                     File file = new File(image);
                     if (file.exists()) {
-                        Log.e("aaaaaaaa", image);
+                        Log.e("image path", image);
                     }
 
 
@@ -200,6 +242,11 @@ public class User1Fragment extends Fragment {
                     me_photo.setImageBitmap(bm);
 
                     Log.e("image", image);
+                }
+                if(map.get("Voice") != null){
+
+                    me_photo.setImageResource(R.drawable.voice);
+
                 }
                 view = layout_me;
             }
