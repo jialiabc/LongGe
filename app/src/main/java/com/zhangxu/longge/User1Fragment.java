@@ -20,6 +20,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +94,7 @@ public class User1Fragment extends Fragment {
                 if(map.get("Image")!=null){
                     String image = map.get("Image").toString();
 
+                    //跳转到显示大图的Activity，并将图像路径传过去
                     Intent intent = new Intent(mContext,Image.class);
                     intent.putExtra("image_show",image);
                     startActivity(intent);
@@ -100,34 +102,47 @@ public class User1Fragment extends Fragment {
                 }
                 //点击播放录音的点击事件
                 else if(map.get("Voice") != null){
+                    //得到要播放的文件路径
                     String voice = map.get("Voice").toString();
-
                     File file = new File(voice);
+                    //判断该路径是否存在
                     if (file.exists()) {
                         Log.e("voice path", voice);
                     }
+                    //new一个MediaPlayer对象
+                    mPlayer = new MediaPlayer();
                     //点击图片时，判断是否在播放录音，如果是，则停止播放，如果否，则开始播放
                     if(time == 0) {
                         try {
-                            mPlayer = new MediaPlayer();
+
                             mPlayer.setDataSource(voice);
                             mPlayer.prepare();
                             mPlayer.start();
                             int i = mPlayer.getDuration();
                             Log.e("Start", i+"");
+                            Toast.makeText(mContext,"正在播放录音，时长为"+i/1000+"s",2000).show();
                         } catch (IOException e) {
                             Log.e("rush", "崩了。");
                         }
-
                         time = 1;
+
+                        return;
+
                     }
                     if(time == 1){
+
+
                         mPlayer.stop();
                         mPlayer.release();
                         mPlayer = null;
 
                         time = 0;
+
+                        return;
+
                     }
+
+
                 }
             }
         });

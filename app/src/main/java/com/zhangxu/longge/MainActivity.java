@@ -172,6 +172,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                 mRecorder.stopRecode();
                 String fileName = mRecorder.fileName;
+                Log.e("Voice_fileName",fileName);
 
                 db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
 
@@ -232,42 +233,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     }
 
-//    //调用系统录音录制声音
-//    private void recodeVoice() {
-//
-//        mRecorder = new MediaRecorder();
-//
-//        long time_ = System.currentTimeMillis();
-//        File file = new File("/sdcard/longge/" + "recode" + time_ + ".3gp");
-//
-//        String fileName = file.getPath();
-//        Log.e("recode", fileName);
-//
-//        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-//        mRecorder.setOutputFile(fileName);
-//        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-//
-//
-//
-//        try {
-//            mRecorder.prepare();
-//        } catch (IOException e) {
-//
-//        }
-//        mRecorder.start();
-//
-//        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
-//
-//
-//    }
-//
-//    //停止录制声音
-//    private void stopRecode() {
-//        mRecorder.stop();
-//        mRecorder.release();
-//        mRecorder = null;
-//    }
 
     //调用系统图库选择照片
     private void selectedPicture() {
