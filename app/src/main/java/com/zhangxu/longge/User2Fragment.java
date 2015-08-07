@@ -20,6 +20,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,27 +113,37 @@ public class User2Fragment extends Fragment {
                         if (file.exists()) {
                             Log.e("voice path", voice);
                         }
+                        //new一个MediaPlayer对象
+                        mPlayer = new MediaPlayer();
                         //点击图片时，判断是否在播放录音，如果是，则停止播放，如果否，则开始播放
-                        if (time == 0) {
+                        if(time == 0) {
                             try {
-                                mPlayer = new MediaPlayer();
+
                                 mPlayer.setDataSource(voice);
                                 mPlayer.prepare();
                                 mPlayer.start();
                                 int i = mPlayer.getDuration();
-                                Log.e("Start", i + "");
+                                Log.e("Start", i+"");
+                                Toast.makeText(mContext, "正在播放录音，时长为" + i / 1000 + "s", 2000).show();
                             } catch (IOException e) {
                                 Log.e("rush", "崩了。");
                             }
-
                             time = 1;
+
+                            return;
+
                         }
-                        if (time == 1) {
+                        if(time == 1){
+
+
                             mPlayer.stop();
                             mPlayer.release();
                             mPlayer = null;
 
                             time = 0;
+
+                            return;
+
                         }
                     }
                 }
