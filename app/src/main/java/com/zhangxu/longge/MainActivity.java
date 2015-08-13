@@ -25,6 +25,8 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
@@ -45,6 +47,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private ImageView user1_iv;
     private ImageView user2_iv;
     private ImageView add_button;
+    private ImageView recordPic;
 
     private EditText edit_input;
 
@@ -68,6 +71,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private int view_step;
 
     private Recode mRecorder;
+
+    private Timer timer;
+    private TimerTask task;
+
+    private long downtime;
+    private long uptime;
+
+    private boolean isRecording;
 
 
     @Override
@@ -104,6 +115,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         user1_iv = (ImageView) findViewById(R.id.user1_iv);
         user2_iv = (ImageView) findViewById(R.id.user2_iv);
         add_button = (ImageView) findViewById(R.id.add_button);
+        recordPic = (ImageView) findViewById(R.id.recordPic);
 
         edit_input = (EditText) findViewById(R.id.edit_input);
 
@@ -152,6 +164,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
 
 
+
+
     }
 
     //录音事件的内部类
@@ -162,24 +176,49 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
-                mRecorder.recodeVoice();
+                downtime = System.currentTimeMillis();
+                timer = new Timer();
+                task = new TimerTask() {
+                    @Override
+                    public void run() {
+
+
+                        mRecorder.recodeVoice();
+
+                        isRecording = true;
+
+                    }
+                };
+
+                timer.schedule(task,1000);
+
 
 
             }
             if (event.getAction() == KeyEvent.ACTION_UP) {
 
-                Log.e("stop","停了？");
+                uptime = System.currentTimeMillis();
 
-                mRecorder.stopRecode();
-                String fileName = mRecorder.fileName;
-                Log.e("Voice_fileName",fileName);
+                if((uptime - downtime)<1000){
+                    timer.cancel();
+                    task.cancel();
+                }
 
-                db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, null, null,fileName});
+                if(isRecording) {
 
+                    mRecorder.stopRecode();
+
+                    //将录音文件目录存到数据库中
+                    String fileName = mRecorder.fileName;
+                    Log.e("Voice_fileName",fileName);
+
+                    db.execSQL("insert into dialog(id,text,image,voice,video) values(?,?,?,?,?)",new Object[]{index, null, null,fileName,null});
+
+                    isRecording = false;
+
+                }
 
                 refresh();
-
-
 
 
             }
@@ -198,7 +237,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                 String text = edit_input.getText().toString();
 
-                db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)",new Object[]{index, text, null,null});
+                db.execSQL("insert into dialog(id,text,image,voice,video) values(?,?,?,?,?)",new Object[]{index, text, null,null,null});
 
                 refresh();
                 edit_input.setText("");
@@ -228,6 +267,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.picture:
                 selectedPicture();
                 break;
+            case R.id.vedio:
+                Intent intent = new Intent(MainActivity.this,RecordVideo.class);
+                intent.putExtra("index",index);
+                startActivity(intent);
 
         }
 
@@ -248,6 +291,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         ((User1Fragment) user1Fragment).refresh();
         ((User2Fragment) user2Fragment).refresh();
     }
+
+
 
     //调用系统相机进行拍照
     private void takePhoto() {
@@ -276,7 +321,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         String imageName = imageUri.getPath();
 
         //将图片路径存储到数据库中
-        db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)", new Object[]{index, null, imageName,null});
+        db.execSQL("insert into dialog(id,text,image,voice,video) values(?,?,?,?,?)", new Object[]{index, null, imageName,null,null});
 
         startActivityForResult(intent, TAKE_PHOTO);
 
@@ -292,7 +337,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 case RESULT_IMAGE:
                     Uri uri = data.getData();
                     String imageName = uri.getPath();
-                    db.execSQL("insert into dialog(id,text,image,voice) values(?,?,?,?)", new Object[]{index, null, imageName,null});
+                    db.execSQL("insert into dialog(id,text,image,voice,video) values(?,?,?,?,?)", new Object[]{index, null, imageName,null,null});
                     refresh();
                     break;
             }
@@ -377,5 +422,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     }
 
+    public void onPause() {
+        super.onPause();
+
+    }
+
+    public void onStart() {
+
+        super.onStart();
+    }
+
+    public void onResume(){
+        super.onResume();
+
+    }
 
 }

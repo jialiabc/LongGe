@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000">
+
+    <SurfaceView
+        android:id="@+id/mView"
+        android:layout_width="match_parent"
+        android:layout_height="275dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <Button
+            android:id="@+id/record"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:text="@string/record"
+            android:layout_gravity="center"
+            android:textSize="40sp"
+            android:textColor="#ffffff"
+            android:background="@drawable/record1"/>
+
+    </LinearLayout>
+
+
+
+</LinearLayout>

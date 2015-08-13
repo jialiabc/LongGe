@@ -142,8 +142,18 @@ public class User1Fragment extends Fragment {
 
                     }
 
+                }else if(map.get("Video") != null){
+                    String video = map.get("Video").toString();
+                    File file = new File(video);
+                    if(file.exists()){
+                        Log.e("video path",video);
+                    }
+                    Intent intent = new Intent(mContext,PlayVideo.class);
 
+                    intent.putExtra("video path",video);
+                    startActivity(intent);
                 }
+
             }
         });
 
@@ -170,6 +180,7 @@ public class User1Fragment extends Fragment {
             map.put("Id", c.getInt(c.getColumnIndex("id")));
             map.put("Image", c.getString(c.getColumnIndex("image")));
             map.put("Voice",c.getString(c.getColumnIndex("voice")));
+            map.put("Video",c.getString(c.getColumnIndex("video")));
             list.add(map);
 
             Log.e("LIST1", list.toString());
@@ -194,19 +205,7 @@ public class User1Fragment extends Fragment {
     }
 
 
-    public void onPause() {
-        super.onPause();
 
-
-    }
-
-    public void onStart() {
-        super.onStart();
-    }
-
-    public void onResume() {
-        super.onResume();
-    }
 
 
     private class DialogAdapter extends BaseAdapter {
@@ -264,6 +263,10 @@ public class User1Fragment extends Fragment {
                     me_photo.setImageResource(R.drawable.voice);
 
                 }
+
+                if(map.get("Video") != null){
+                    me_photo.setImageResource(R.drawable.voice);
+                }
                 view = layout_me;
             }
             if (index == 1) {
@@ -298,10 +301,25 @@ public class User1Fragment extends Fragment {
                     other_photo.setImageResource(R.drawable.voice);
 
                 }
+                if(map.get("Video") != null){
+                    other_photo.setImageResource(R.drawable.vedio);
+                }
                 view = layout_other;
             }
 
             return view;
         }
+    }
+
+    public void onPause() { super.onPause();
+    }
+
+    public void onStart() {
+        super.onStart();
+    }
+
+    public void onResume() {
+        super.onResume();
+        refresh();
     }
 }

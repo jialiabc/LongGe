@@ -11,5 +11,8 @@
     <string name="title2">User2</string>
     <string name="send">发送</string>
     <string name="title_activity_image">Image</string>
+    <string name="title_activity_record_video">RecordVideo</string>
+    <string name="record">按住录像</string>
+    <string name="title_activity_play_video">PlayVideo</string>
 
 </resources>

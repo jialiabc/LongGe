@@ -2,13 +2,12 @@ package com.zhangxu.longge;
 
 import android.app.Activity;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by my on 15/8/6.
- */
+
 public class Recode extends Activity {
 
     private MediaRecorder mRecorder;
@@ -29,14 +28,15 @@ public class Recode extends Activity {
         mRecorder.setOutputFile(fileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-
-
         try {
             mRecorder.prepare();
+            mRecorder.start();
         } catch (IOException e) {
 
+            Log.e("通知","播放过程中出现了错误");
+
         }
-        mRecorder.start();
+
 
 
     }
@@ -44,9 +44,8 @@ public class Recode extends Activity {
     //停止录制声音
     public void stopRecode() {
 
-
+        Log.e("通知","点击了Stop");
         mRecorder.stop();
         mRecorder.release();
-        mRecorder = null;
     }
 }

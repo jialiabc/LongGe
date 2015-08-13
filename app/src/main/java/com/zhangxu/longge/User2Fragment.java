@@ -116,14 +116,14 @@ public class User2Fragment extends Fragment {
                         //new一个MediaPlayer对象
                         mPlayer = new MediaPlayer();
                         //点击图片时，判断是否在播放录音，如果是，则停止播放，如果否，则开始播放
-                        if(time == 0) {
+                        if (time == 0) {
                             try {
 
                                 mPlayer.setDataSource(voice);
                                 mPlayer.prepare();
                                 mPlayer.start();
                                 int i = mPlayer.getDuration();
-                                Log.e("Start", i+"");
+                                Log.e("Start", i + "");
                                 Toast.makeText(mContext, "正在播放录音，时长为" + i / 1000 + "s", 2000).show();
                             } catch (IOException e) {
                                 Log.e("rush", "崩了。");
@@ -133,7 +133,7 @@ public class User2Fragment extends Fragment {
                             return;
 
                         }
-                        if(time == 1){
+                        if (time == 1) {
 
 
                             mPlayer.stop();
@@ -145,6 +145,16 @@ public class User2Fragment extends Fragment {
                             return;
 
                         }
+                    } else if (map.get("Video") != null) {
+                        String video = map.get("Video").toString();
+                        File file = new File(video);
+                        if (file.exists()) {
+                            Log.e("video path", video);
+                        }
+                        Intent intent = new Intent(mContext, PlayVideo.class);
+
+                        intent.putExtra("video path", video);
+                        startActivity(intent);
                     }
                 }
             });
@@ -173,7 +183,8 @@ public class User2Fragment extends Fragment {
             map.put("Text", c.getString(c.getColumnIndex("text")));
             map.put("Id", c.getInt(c.getColumnIndex("id")));
             map.put("Image", c.getString(c.getColumnIndex("image")));
-            map.put("Voice",c.getString(c.getColumnIndex("voice")));
+            map.put("Voice", c.getString(c.getColumnIndex("voice")));
+            map.put("Video", c.getString(c.getColumnIndex("video")));
             list.add(map);
 
             Log.e("LIST2", list.toString());
@@ -195,22 +206,6 @@ public class User2Fragment extends Fragment {
 
 
     }
-
-
-    public void onPause() {
-        super.onPause();
-
-
-    }
-
-    public void onStart() {
-        super.onStart();
-    }
-
-    public void onResume() {
-        super.onResume();
-    }
-
 
     private class DialogAdapter extends BaseAdapter {
         @Override
@@ -267,6 +262,9 @@ public class User2Fragment extends Fragment {
                     me_photo.setImageResource(R.drawable.voice);
 
                 }
+                if (map.get("Video") != null) {
+                    me_photo.setImageResource(R.drawable.voice);
+                }
 
                 view = layout_me;
             }
@@ -304,10 +302,27 @@ public class User2Fragment extends Fragment {
 
                 }
 
+                if (map.get("Video") != null) {
+                    other_photo.setImageResource(R.drawable.vedio);
+                }
+
                 view = layout_other;
             }
 
             return view;
         }
+    }
+
+    public void onPause() {
+        super.onPause();
+    }
+
+    public void onStart() {
+        super.onStart();
+    }
+
+    public void onResume() {
+        super.onResume();
+        refresh();
     }
 }
