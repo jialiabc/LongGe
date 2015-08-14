@@ -113,6 +113,8 @@ public class RecordVideo extends Activity implements SurfaceHolder.Callback {
                 }
 
 
+
+
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -145,6 +147,10 @@ public class RecordVideo extends Activity implements SurfaceHolder.Callback {
                 downTime = System.currentTimeMillis();
                 //创建MediaRecorder对象
                 mRecord = new MediaRecorder();
+
+                mRecord.setOrientationHint(90);
+
+
                 //改变字体颜色和图片
                 mButton_record.setBackgroundResource(R.drawable.record2);
                 mButton_record.setTextColor(0xff22f402);
@@ -195,6 +201,7 @@ public class RecordVideo extends Activity implements SurfaceHolder.Callback {
                             e.printStackTrace();
                         }
 
+
                         mRecord.start();
 
                         isRecording = true;
@@ -220,10 +227,12 @@ public class RecordVideo extends Activity implements SurfaceHolder.Callback {
                     mRecord.release();
                     mRecord = null;
                     isRecording = false;
+
+                    String fileName = mfile.getPath();
+                    db.execSQL("insert into Dialog(id,text,image,voice,video) values(?,?,?,?,?)",new Object[]{index, null, null,null,fileName});
+                    finish();
                 }
-                String fileName = mfile.getPath();
-                db.execSQL("insert into Dialog(id,text,image,voice,video) values(?,?,?,?,?)",new Object[]{index, null, null,null,fileName});
-                finish();
+
             }
             return false;
         }

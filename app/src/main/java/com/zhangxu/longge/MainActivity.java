@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -182,7 +184,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     @Override
                     public void run() {
 
-
                         mRecorder.recodeVoice();
 
                         isRecording = true;
@@ -202,6 +203,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 if((uptime - downtime)<1000){
                     timer.cancel();
                     task.cancel();
+                    Toast.makeText(MainActivity.this,"长按时间过短,请长按",1000).show();
                 }
 
                 if(isRecording) {
@@ -282,6 +284,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
+
         startActivityForResult(intent, RESULT_IMAGE);
 
     }
@@ -337,6 +340,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 case RESULT_IMAGE:
                     Uri uri = data.getData();
                     String imageName = uri.getPath();
+
+                    File file = new File(imageName);
+                    if (!file.exists()){
+                        Log.e("imageName",imageName);
+                    }
+
                     db.execSQL("insert into dialog(id,text,image,voice,video) values(?,?,?,?,?)", new Object[]{index, null, imageName,null,null});
                     refresh();
                     break;

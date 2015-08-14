@@ -265,7 +265,7 @@ public class User1Fragment extends Fragment {
                 }
 
                 if(map.get("Video") != null){
-                    me_photo.setImageResource(R.drawable.voice);
+                    me_photo.setImageResource(R.drawable.vedio);
                 }
                 view = layout_me;
             }
